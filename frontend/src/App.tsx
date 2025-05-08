@@ -1,58 +1,63 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useState } from 'react';
-import {
-  Container,
-  Card,
-  Form,
-  Button,
-  ListGroup
-} from 'react-bootstrap';
+import { useState, useRef } from 'react';
+import { Container, Card, Button } from 'react-bootstrap';
 
 const App = () => {
-  const [text, setText] = useState('');
-  const [todos, setTodos] = useState<string[]>([]);
+  const [seconds, setSeconds] = useState(0);
+  const intervalRef = useRef<number | null>(null);
 
-  const handleSubmit = () => {
-    if (text.trim() === '') return;
-    setTodos([...todos, text]);
-    setText('');
+
+  const handleStartClick = () => {
+    if (intervalRef.current !== null) return;
+    const intervalId = setInterval(() => {
+      setSeconds(prev => prev + 1);
+    }, 1000);
+    intervalRef.current = intervalId;
+  }
+
+  const handleStopClick = () => {
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }
+
+  const handleResetClick = () => {
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setSeconds(0);
+  }
+
+  //時間分秒に分る
+  const formatTime = (totalSeconds: number) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const pad = (num: number) => num.toString().padStart(2, '0');
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
   };
 
-  const handleDelete = (index: number) => {
-    setTodos(todos.filter((_, i) => i !== index));
-  };
 
   return (
     <Container className="mt-5">
       <Card className="p-4 shadow">
-        <Card.Title>React100本ノック</Card.Title>
-        <Card.Subtitle className="mb-3 text-muted">TodoList</Card.Subtitle>
+        <Card.Title className='text-center fw-bold text-primary fs-2'>React100本ノック</Card.Title>
+        <Card.Subtitle className="mb-3 text-muted text-center">タイマーアプリ</Card.Subtitle>
 
-        <Form onSubmit={(e) => e.preventDefault()}>
-          <div className="d-flex align-items-center gap-2 mb-3">
-            <Form.Control
-              type="text"
-              value={text}
-              placeholder="todoを入力"
-              onChange={(e) => setText(e.target.value)}
-            />
-            <Button variant="primary" onClick={handleSubmit}  className="px-4 py-2">追加</Button>
-          </div>
-        </Form>
 
-        <ListGroup>
-          {todos.map((todo, index) => (
-            <ListGroup.Item
-              key={index}
-              className="d-flex justify-content-between align-items-center"
-            >
-              {todo}
-              <Button variant="danger" size="sm" onClick={() => handleDelete(index)}>
-                削除
-              </Button>
-            </ListGroup.Item>
-          ))}
-        </ListGroup>
+        <div className='text-center display-3 bg-light rounded-lg '>
+          {formatTime(seconds)}
+        </div>
+        <div className="d-flex justify-content-center">
+          <Button className="flex-fill" style={{ minWidth: '100px' }} onClick={handleStartClick}>start</Button>
+          <Button className="flex-fill" style={{ minWidth: '100px' }} onClick={handleStopClick}>stop</Button>
+          <Button className="flex-fill" style={{ minWidth: '100px' }} onClick={handleResetClick}>reset</Button>
+        </div>
+
+
       </Card>
     </Container>
   );
